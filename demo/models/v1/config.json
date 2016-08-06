@@ -1,0 +1,5 @@
+{
+  "MAXLEN": 32,
+  "INVERT": true,
+  "NGRAM": 5
+}

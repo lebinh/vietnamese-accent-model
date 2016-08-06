@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tự động thêm dấu tiếng Việt - Auto add accent to Vietnamese</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+    <style>
+        html {
+          position: relative;
+          min-height: 100%;
+        }
+        body {
+          /* Margin bottom by footer height */
+          margin-bottom: 60px;
+        }
+        .footer {
+          position: absolute;
+          bottom: 0;
+          width: 100%;
+          /* Set the fixed height of the footer here */
+          height: 60px;
+          background-color: #f5f5f5;
+        }
+        .container {
+          width: auto;
+          max-width: 860px;
+          padding: 0 15px;
+        }
+        .footer .text-muted {
+          margin: 20px 0;
+        }
+        .textarea {
+          font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+          font-size: 14px;
+          width: 100%;
+          height: 200px !important;
+          -webkit-box-sizing: border-box;
+          -moz-box-sizing: border-box;
+          box-sizing: border-box;
+        }
+        .output {
+          background-color: white;
+          border: 1px dashed #ccc;
+        }
+        h1 {
+          font-size: 26px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+      <div class="page-header">
+        <h1>Tự động thêm dấu tiếng Việt</h1>
+      </div>
+      <div class="row">
+        <div class="col-md-6">
+          <h5>Tiếng Việt không dấu - Vietnamese without accents</h5>
+          <textarea id="input" name="input" class="form-control textarea" rows="10"></textarea>
+        </div>
+        <div class="col-md-6">
+          <h5>Tiếng Việt có dấu - Vietnamese with accents</h5>
+          <textarea disabled id="output" class="textarea output"></textarea>
+          <p class="text-right text-muted"><small>took <span id="duration">0</span> ms.</small></p>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <div class="container">
+        <p class="text-muted">
+            Source &amp; Model training notebook are open:
+            <a href="https://github.com/lebinh/vietnamese-accent-model">
+                lebinh/vietnamese-accent-model
+                <svg aria-hidden="true" octicon-mark-github" height="16" viewBox="0 0 16 16" width="16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path></svg>
+            </a>
+        </p>
+      </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+    <script type="text/javascript">
+    var addAccent = function() {
+        var input = $("#input").val();
+        var query = encodeURIComponent(input);
+        if (/\S/.test(input)) {
+            $.getJSON("/accented?text=" + query, function(resp) {
+                $("#output").text(resp.with_accent);
+                var duration = Math.round(resp.took * 100);
+                $("#duration").text(duration);
+            });
+        } else {
+            $("#output").text("");
+            $("#duration").text("0");
+        }
+    };
+    $(function() {
+        $("#input").bind("input", _.debounce(addAccent, 1000));
+    });
+    </script>
+</body>
+</html>
