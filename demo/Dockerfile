@@ -9,6 +9,6 @@ ENV PYTHONUNBUFFERED=true \
 
 WORKDIR /opt/demo
 
-CMD ["gunicorn", "--bind=0.0.0.0", "app:__hug_wsgi__"]
+CMD ["gunicorn", "--bind=0.0.0.0:80", "app:__hug_wsgi__"]
 
 COPY . .
