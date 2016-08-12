@@ -37,9 +37,17 @@ class Model(object):
     def __init__(self, config_file, model_file, weights_file):
         with open(config_file) as f:
             self.config = json.load(f)
-            self.maxlen = self.config.get('MAXLEN', 32)
-            self.invert = self.config.get('INVERT', True)
-            self.ngram = self.config.get('NGRAM', 5)
+
+        self.maxlen = self.config.get('MAXLEN', 32)
+        self.invert = self.config.get('INVERT', True)
+        self.ngram = self.config.get('NGRAM', 5)
+        self.pad_words_input = self.config.get('PAD_WORDS_INPUT', True)
+
+        self.codec = CharacterCodec(utils.ALPHABET, self.maxlen)
+        if self.config.get('BASE_CODEC_INPUT', False):
+            self.input_codec = CharacterCodec(utils.BASE_ALPHABET, self.maxlen)
+        else:
+            self.input_codec = self.codec
 
         with utils.timing('Create model'):
             with open(model_file) as f:
@@ -50,14 +58,14 @@ class Model(object):
                                metrics=['accuracy'])
         with utils.timing('Load weights'):
             self.model.load_weights(weights_file)
-        self.codec = CharacterCodec(utils.ALPHABET, self.maxlen)
 
     def guess(self, words):
         text = ' '.join(words)
         text = utils.pad(text, self.maxlen)
         if self.invert:
             text = text[::-1]
-        preds = self.model.predict_classes(np.array([self.codec.encode(text)]), verbose=0)
+        input_vec = self.input_codec.encode(text)
+        preds = self.model.predict_classes(np.array([input_vec]), verbose=0)
         return self.codec.decode(preds[0], calc_argmax=False).strip('\x00')
 
     def add_accent(self, text):
@@ -69,8 +77,9 @@ class Model(object):
         # for each block of words or symbols in input text, either append the symbols or
         # add accents for words and append them.
         outputs = []
-        print('input:', re.findall('\w[\w ]*|\W+', text))
-        for words_or_symbols in re.findall('\w[\w ]*|\W+', text):
+        words_or_symbols_list = re.findall('\w[\w ]*|\W+', text)
+        print('input:', words_or_symbols_list)
+        for words_or_symbols in words_or_symbols_list:
             if utils.is_words(words_or_symbols):
                 outputs.append(self._add_accent(words_or_symbols))
             else:
@@ -84,13 +93,13 @@ class Model(object):
         return output_text
 
     def _add_accent(self, phrase):
-        grams = list(utils.gen_ngram(phrase.lower(), n=self.ngram))
+        grams = list(utils.gen_ngram(phrase.lower(), n=self.ngram, pad_words=self.pad_words_input))
         guessed_grams = list(self.guess(gram) for gram in grams)
         candidates = [Counter() for _ in range(len(guessed_grams) + self.ngram - 1)]
         for idx, gram in enumerate(guessed_grams):
             for wid, word in enumerate(re.split(' +', gram)):
                 candidates[idx + wid].update([word])
-        output = ' '.join(c.most_common(1)[0][0] for c in candidates)
+        output = ' '.join(c.most_common(1)[0][0] for c in candidates if c)
         return output.strip('\x00 ')
 
 

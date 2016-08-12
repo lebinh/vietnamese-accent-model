@@ -19,8 +19,8 @@ for c, variants in ACCENTED_CHARS.items():
         ACCENTED_TO_BASE_CHAR_MAP[v] = c
 
 # \x00 is the padding characters
-ALPHABET = set(
-    '\x00 _' + string.ascii_lowercase + string.digits + ''.join(ACCENTED_TO_BASE_CHAR_MAP.keys()))
+BASE_ALPHABET = set('\x00 _' + string.ascii_lowercase + string.digits)
+ALPHABET = BASE_ALPHABET.union(set(''.join(ACCENTED_TO_BASE_CHAR_MAP.keys())))
 
 
 def is_words(text):
@@ -37,14 +37,15 @@ def pad(phrase, maxlen):
     return phrase + u'\x00' * (maxlen - len(phrase))
 
 
-def gen_ngram(words, n=3):
+def gen_ngram(words, n=3, pad_words=True):
     """ gen n-grams from given phrase or list of words """
     if isinstance(words, str):
         words = re.split('\s+', words.strip())
 
     if len(words) < n:
-        padded_words = words + ['\x00'] * (n - len(words))
-        yield tuple(padded_words)
+        if pad_words:
+            words += ['\x00'] * (n - len(words))
+        yield tuple(words)
     else:
         for i in range(len(words) - n + 1):
             yield tuple(words[i: i + n])

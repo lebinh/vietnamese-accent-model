@@ -7,7 +7,7 @@ import hug
 import model
 
 MODEL_DIR = os.environ.get('MODELS_DIR', 'models')
-MODEL_VERSION = os.environ.get('MODEL_VERSION', 'v1')
+MODEL_VERSION = os.environ.get('MODEL_VERSION', 'v2')
 the_model = model.load_model(os.path.join(MODEL_DIR, MODEL_VERSION))
 
 with io.open('static/index.html', encoding='utf-8') as f:

@@ -1,0 +1,7 @@
+{
+  "MAXLEN": 32,
+  "INVERT": true,
+  "NGRAM": 5,
+  "BASE_CODEC_INPUT": true,
+  "PAD_WORDS_INPUT": false
+}
